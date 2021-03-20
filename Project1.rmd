@@ -73,19 +73,20 @@ g2 <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week)) +
    geom_boxplot() +
    theme(axis.text.x=element_blank(),
    axis.ticks.x=element_blank()) +
-   ggtitle("Day of Week - Attend")
+   ggtitle("Attendance - Day of week")
 
 g2b <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week, color = bobblehead)) +
    geom_boxplot() +
    theme(axis.text.x=element_blank(),
    axis.ticks.x=element_blank()) +
-   ggtitle("Day of Week - Attend With Bobblehead")
+   ggtitle("Attendance ( Bobblehead) - Day of week")
 
-grid.arrange(g2,g2b, ncol = 2)
+grid.arrange(g2, g2b, ncol = 2)
 ```
 
 ### Opponent
 ### Temperature
+
 ### Skies
 ### Day or Night
 ### Caps
