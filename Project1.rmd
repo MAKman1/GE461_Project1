@@ -1,0 +1,66 @@
+---
+title: <center><h2><b> GE461 Project1 <br/></b></h2></center>
+author: <center> <b><br/>Gledis Zeneli 21701065</b> <br/> <br/> <b>Verdiyev Zulfugar 21701208</b> <br/> <br/>  <b>Muhammad Arham Khan 21701848</b></center>
+always_allow_html: true
+linkcolor: red
+output: 
+  bookdown::html_document2:
+    theme: readable
+    number_sections: false
+    code_folding: "hide"
+    toc: true
+  bookdown::pdf_document2:
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+library(magrittr)
+library(tidyverse)
+library(car)
+library(knitr)
+library(kableExtra)
+library(pander)
+opts_chunk$set(echo = TRUE)
+
+options(knitr.kable.NA =".") 
+kable_format <- if (is_html_output()) "html" else "latex"
+options(scipen = 999)
+```
+
+## Data
+
+```{r collapse=TRUE}
+library(RSQLite)
+con <- dbConnect(SQLite(), "data/dodgers.sqlite") 
+
+events <- tbl(con, "events") %>% 
+  collect() %>% 
+  mutate(month = factor(month, levels = c("APR","MAY","JUN","JUL","AUG","SEP","OCT")),
+         # no need to change day
+         # no need to change attend
+         day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+         opponent = factor(opponent, levels = c("Pirates", "Padres", "Braves", "Nationals", "Giants", "Rockies", "Snakes", "Cardinals", "Astros", "Brewers", "Angels", "White Sox", "Mets", "Reds", "Phillies", "Cubs", "Marlins")),
+         temp = round((temp - 32)*5/9), # temp is converted from F to C.)
+         skies = factor(skies, levels = c("Clear", "Cloudy")),
+         day_night = factor(day_night, levels = c("Night", "Day")),
+         cap = ifelse(cap=="YES", 1, 0),
+         shirt = ifelse(shirt=="YES", 1, 0),
+         fireworks = ifelse(fireworks=="YES", 1, 0),
+         bobblehead = ifelse(bobblehead=="YES", 1, 0))
+
+events %>% 
+  head() %>%
+  pander(caption="Sample Data")
+```
+## Relation of Variables to Attendance
+### Month
+### Day of the Week
+### Opponent
+### Temperature
+### Skies
+### Day or Night
+### Caps
+### Shirts
+### Fireworks
+### Bobblehead
+### ??Linear Regression??

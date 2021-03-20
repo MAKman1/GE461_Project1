@@ -99,9 +99,14 @@ con <- dbConnect(SQLite(), "data/dodgers.sqlite")
 
 events <- tbl(con, "events") %>% 
   collect() %>% 
-  mutate(day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
-         month = factor(month, levels = c("APR","MAY","JUN","JUL","AUG","SEP","OCT")),
+  mutate(month = factor(month, levels = c("APR","MAY","JUN","JUL","AUG","SEP","OCT")),
+         # no need to change day
+         # no need to change attend
+         day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+         opponent = factor(opponent, levels = c("Pirates", "Padres", "Braves", "Nationals", "Giants", "Rockies", "Snakes", "Cardinals", "Astros", "Brewers", "Angels", "White Sox", "Mets", "Reds", "Phillies", "Cubs", "Marlins")),
          temp = round((temp - 32)*5/9), # temp is converted from F to C.)
+         skies = factor(skies, levels = c("Clear", "Cloudy")),
+         day_night = factor(day_night, levels = c("Night", "Day")),
          cap = ifelse(cap=="YES", 1, 0),
          shirt = ifelse(shirt=="YES", 1, 0),
          fireworks = ifelse(fireworks=="YES", 1, 0),
@@ -484,6 +489,12 @@ for (i in seq(nfold)){
 
 rmse_res %>% mean()
 rmse_bic %>% mean()
+```
+
+
+```{r}
+full_reg = res <- lm(attend ~ month + day + day_of_week + opponent + temp + skies + bobblehead + day, events)
+full_reg
 ```
 
 
