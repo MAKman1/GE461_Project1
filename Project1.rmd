@@ -55,6 +55,35 @@ events %>%
 ## Relation of Variables to Attendance
 ### Month
 ### Day of the Week
+```{r collapse=TRUE}
+library(magrittr)
+library(tidyverse)
+library(grid)
+library(gridExtra)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+library(pander)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = TRUE,
+	warning = TRUE
+)
+g2 <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Day of Week - Attend")
+
+g2b <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week, color = bobblehead)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Day of Week - Attend With Bobblehead")
+
+grid.arrange(g2,g2b, ncol = 2)
+```
+
 ### Opponent
 ### Temperature
 ### Skies
