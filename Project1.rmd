@@ -64,11 +64,7 @@ library(ggplot2)
 library(knitr)
 library(kableExtra)
 library(pander)
-knitr::opts_chunk$set(
-	echo = TRUE,
-	message = TRUE,
-	warning = TRUE
-)
+
 g2 <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week)) +
    geom_boxplot() +
    theme(axis.text.x=element_blank(),
