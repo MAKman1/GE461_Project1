@@ -1,0 +1,500 @@
+---
+title: <center> <h2> Spring 2021 </h2>  GE 461 Introduction to Data Science </center>
+# title: |
+pagetitle: GE 461 Introduction to Data Science
+papersize: a4paper
+author: <center> Statistical Models by Savaş Dayanık </center>
+# author: Statistical Models by Savaş Dayanık
+always_allow_html: true
+linkcolor: red
+output: 
+  bookdown::html_document2:
+    theme: readable
+    number_sections: false
+    code_folding: "hide"
+    toc: true
+  bookdown::pdf_document2:
+    number_sections: false
+bibliography: GE461.bib
+link-citations: yes
+---
+
+----
+<center> <h2>
+\begin{center}
+ \textbf{\Large Week 5: Advertising and Promotion}
+\end{center}
+<!-- <center> <h4>  Week 5 </h2> </center> -->
+</h2> </center>
+----
+
+```{r setup, include=FALSE}
+library(magrittr)
+library(tidyverse)
+library(car)
+library(knitr)
+library(kableExtra)
+library(pander)
+opts_chunk$set(echo = TRUE)
+
+options(knitr.kable.NA =".") 
+kable_format <- if (is_html_output()) "html" else "latex"
+options(scipen = 999)
+```
+
+
+The Dodgers is a professional baseball team and plays in the Major Baseball League. The team owns a 56,000-seat stadium and is interested in increasing the attendance of their fans during home games.*At the moment the team management would like to know if bobblehead promotions increase the attendance of the team's fans?* This is a case study based on @miller2014modeling[ Chapter 2].
+
+```{r, out.width=c("33%","33%","13%"), fig.align='center', fig.show="hold", fig.cap="56,000-seat Dodgers stadium (left),   shirts and caps (middle),  bobblehead (right)"}
+include_graphics(c("los_angeles-dodgers-stadium.jpg",
+                 "Los-Angeles-Dodgers-Promo.jpg",
+                 "adrian_bobble.jpg"))
+```
+
+    
+The 2012 season data in the `events` table of SQLite database `data/dodgers.sqlite` contain for each of  81 home play the 
+
+* month, 
+* day, 
+* weekday, 
+* part of the day (day or night),
+* attendance, 
+* opponent, 
+* temperature, 
+* whether cap or shirt or bobblehead promotions were run, and 
+* whether fireworks were present.
+
+## Prerequisites
+
+We will use `R`, `RStudio`, `R Markdown` for the next three weeks to fit statistical models to various data and analyze them. Read @wickham2017r online
+
+*  [Section 1.1](https://r4ds.had.co.nz/introduction.html#prerequisites) for how to download and install `R` and `RStudio`,
+* [Chapter 27](https://r4ds.had.co.nz/r-markdown.html) for how to use `R Markdown` to interact with `R` and conduct various predictive analyses.
+
+All materials for the next three weeks will be available on [Google drive](https://drive.google.com/drive/folders/1pG135fhERGc9k2gL_DRvxt2Q05gW9KC5?usp=sharing).
+
+## February 23: Exploratory data analysis
+
+@. Connect to  `data/dodgers.sqlite`. Read table `events` into a variable in `R`.
+
+    * Read @baumer2017modern[Chapters 1, 4, 5, 12] ([Second edition online](https://mdsr-book.github.io/mdsr2e/)) for getting data from and writing them to various SQL databases. 
+    * Because we do not want to hassle with user permissions, we will use SQLite for practice. I recommend `PostgreSQL` for real projects.
+    
+    * Open `RStudio` terminal, connect to database `dodgers.sqlite` with `sqlite3`. Explore it (there is only one table, `events`, at this time) with commands 
+      - `.help`
+      - `.databases `
+      - `.tables`
+      - `.schema <table_name>`
+      - `.headers on`
+      - `.mode column`
+      - `SELECT ...`
+      - `.quit`
+      
+    * Databases are great to store and retrieve large data, especially, when they are indexed with respect to variables/columns along with we do search and match extensively. 
+    * `R` (likewise, `Python`) allows one to seeminglessly read from and write to databases. For fast analysis, keep data in a database, index tables for fast retrieval, use `R` or `Python` to fit models to data.
+
+```{r}
+# Ctrl-shift-i
+#library(RPostgreSQL)
+library(RSQLite)  ## if package is not on the computer, then install it only once using Tools > Install packages...
+con <- dbConnect(SQLite(), "data/dodgers.sqlite") # read Modern Data Science with R for different ways to connect a database.
+
+## dbListTables(con)
+
+events <- tbl(con, "events") %>% 
+  collect() %>% 
+  mutate(day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
+         month = factor(month, levels = c("APR","MAY","JUN","JUL","AUG","SEP","OCT")),
+         temp = round((temp - 32)*5/9),
+         bobblehead = ifelse(bobblehead=="YES", 1, 0)) # temp is converted from F to C.)
+  
+# events %>% distinct(month)
+# events$day_of_week %>% class()
+# events$day_of_week %>% levels()
+# events
+```
+
+```{r, eval=FALSE}
+events %>% 
+  count(month, name = "number of games") %>% 
+  arrange(desc(`number of games`)) %>% # predicates coming from tidyverse package Install tidyverse using Tools menu // visit  R for Data Science Wrangling
+  # show_query()  # shows the SQL command used to retrieve data from database
+  collect() %>% 
+  pander(caption = "Number of games played in different months")
+```
+
+@. What are the number of plays on each week day and in each month of a year?
+
+    Here is the table of games aggregated according to month and day of week:
+    ```{r}
+panderOptions("missing", "0")
+events %>% 
+  count(month, day_of_week, sort = TRUE) %>% 
+  collect() %>% 
+  spread(key = "day_of_week", value = "n") %>% 
+  #pivot_wider(names_from = "day_of_week", values_from = "n")
+  pander(caption = "Number of games played in each month and on each day of week")
+```
+
+    Alternative way of creating the same table, but more useful because we can directly run a test of independence between row and column predictors. Let us also add margins to rows and columns to see the total number of games in each month and on each day of week.
+    ```{r}
+tbl <- xtabs(~ month + day_of_week , events)
+#chi-square test of independence
+tbl %>% addmargins() %>% pander(caption = "Same table as above, but with margins")
+```
+
+    ```{r}
+tbl %>% summary() %>% pander ()
+panderOptions("missing", "-")
+```    
+
+    Parametric chi-square test of independence is unreliable because many cells contain numbers less than five. We repeat below the test using bootstrapping (=creating many tables with replacement under independence assumption).
+    ```{r}
+tbl %>% chisq.test(simulate.p.value = TRUE, B = 10000) %>% pander(caption = "Pearson's Chi-squared test with simulated p-value
+	 (based on 10000 replicates)")
+```
+    
+    Pearson Chi-square test  of independence has large p-value. Therefore, we cannot reject the null hypothesis, which says month and day_of_week are independent predictors if we are trying to estimate the number of games played on a day of a month. 
+
+     What happens if we are trying to predict the attendance in a game played on a day of a month?
+
+    ```{r}
+panderOptions("table.split.table", Inf)    
+tbl2 <- xtabs(attend ~ month + day_of_week , events)
+tbl2 %>% addmargins() %>% pander(caption = "Total attendance on all games played on a day of a month")
+tbl2 %>% summary %>% pander()
+```
+    
+    When we count the attendance on all games, p-value for the independence test turns out to be zero. Therefore, we reject the null hypothesis (= independence of month and day of week). Considering sum of attendance, we conclude the predictors month and day of week are NOT independent. We should consider adding a interaction term (product of both predictors) to regression model
+    
+@. Check the orders of the levels of the `day_of_week` and `month` factors. If necessary, put them in the logical order.
+
+    Done in the first part.
+   
+@. How many times were bobblehead promotions run on each week day?
+  
+    ```{r}
+events %>% 
+      count(day_of_week, bobblehead) %>% 
+      spread(key = day_of_week, value = n) %>% 
+      pander(caption = "Number of games played on each day of week disaggrated according whether Bobblehead was given away or not")
+```
+   
+     We cannot distinguish day and bobblehead effects on Mondays, Wednesday, Fridays. 
+   
+
+@. How did the attendance vary across week days? Draw boxplots. On which day of week was the attendance the highest on average?
+
+    ```{r}
+events %>% 
+      ggplot(aes(day_of_week, attend)) +
+      geom_boxplot() +
+      labs(x=NULL, y ="attendance") +
+      scale_y_continuous(labels = scales::comma)
+```
+
+    * Variance of attendance changes across day of weeks.
+    * On Tuesday we observed largest average (median in fact) attendance  
+    * Thursday variance of attendance may look large, but this is most likely because of small number of games (small sample) played on Thursday.
+    * Pay attention to outliers. Try to find a reason (is it temperature, opponent, month why we have unusually large or small attendance)
+
+    Same plot and outliers can be obtained using `Boxplot` command from `car` package.
+    ```{r boxcar, fig.cap = "Boxplot draw by car package labels the outliers with their row numbers"}
+out <- Boxplot(attend ~ day_of_week, data = events, xlab = NULL, ylab = "attendance", cex.axis=.8)
+```
+    Third outlier on Tuesday disappeared when `Boxplot` is used. Apparently, it is near the boundary. Let us take a look at the remaining two outliers:
+
+    <!-- (ref:outcaption) Outliers appeared in the booxplots of Figure \@ref(fig:boxcar) -->
+
+    ```{r}
+events %>% 
+  mutate(row = seq(n())) %>% 
+  relocate(row) %>% 
+  slice(as.numeric(out)) %>% 
+  # pander(caption = "(ref:outcaption)")
+  pander(caption = "Outliers appeared in the booxplots of Figure \\@ref(fig:boxcar)")
+```
+
+
+@. Is there an association between attendance and 
+    - whether the game is played in day light or night? 
+    - Between attendance and whether skies are clear or cloudy?  
+  
+```{r}
+tbl1 <- xtabs(~day_night+day_of_week, events) 
+tbl1 %>% addmargins() %>% pander(caption = "Number of games versus day part and day of week")
+tb2 <- xtabs(attend ~ day_night + day_of_week, events)
+tbl2 %>% addmargins() %>% pander(caption = "The sum of attendance across all games versus day part and day of week")
+round(tb2/tbl1) %>%  pander(caption = "Average attendance for the games played during day/night on each day of week")
+```
+
+```{r}
+events %>% 
+  ggplot(aes(day_of_week, attend)) +
+  geom_boxplot(aes(fill=day_night))
+```
+The attendance seem to fluctuate widely even within night games across different day of weeks. This is am indication of interacting predictors `day_night` and `day_of_week.`
+
+How about effect of `skies` on attendance?
+```{r}
+tbl3 <- xtabs(~ skies + month, events)
+tbl3 %>% pander(caption = "Number of games played under clear/cloudy skies on each month")
+tbl4 <- xtabs(attend~ skies + month, events)
+tbl4%>% pander(caption = "Total attendance played under clear/cloudy skies on each month")
+
+round(tbl4/tbl3) %>% pander(caption = "Average attendance played under clear/cloudy skies on each month")
+```
+
+Skies predictor seems to also have an important effect on attendance, and it also seems to interact with, for example, month variable.
+
+```{r}
+events %>% 
+  ggplot(aes(month, attend)) +
+  geom_boxplot(aes(fill=skies))
+```
+
+@. Is there an association between attendance and temperature? 
+    - If yes, is there a positive or negative association? 
+    - Do the associations differ on clear and cloud days or day or night times? 
+    
+```{r}
+events %>% 
+  select(attend, temp) %>% 
+  summary() %>% 
+  pander(caption = "Summary of attendance and temperature")
+```
+
+```{r}
+events %>% 
+  ggplot(aes(temp, attend)) +
+  #geom_jitter()
+  geom_point() +
+  geom_smooth(se=FALSE) +
+  # geom_smooth(method = "lm", col="red", se=FALSE) +
+  # geom_smooth(method = "lm", formula = y ~ poly(x, 2), col="red", lty = "dashed", se=FALSE) +
+  # geom_smooth(method = "lm", formula = y ~ x + pmax(x-24, 0) + pmax(x-28, 0), col="red",se=FALSE) +
+  geom_smooth(method = "lm", formula = y ~ splines::ns(x, df=4), col="red",se=FALSE)  
+```
+    
+    
+\clearpage
+## Next time: A linear regression model
+
+Regress attendance on `month`, `day of the week`, and `bobblehead` promotion.
+
+```{r}
+res <- lm(attend ~ month + day_of_week + bobblehead, events)
+```
+
+```{r}
+res
+```
+$$
+attendance (x) = \beta_0 + \beta_{May}^{Month} D_{May}^{Month}(x) + \beta_{Jun}^{Month} D_{Jun}^{Month}(x) + \ldots +\beta_{Oct}^{Month} D_{Oct}^{Month}(x)\\
++ \beta_{Tues}^{Week} D_{Tues}^{Week}(x) + \ldots + \beta_{Sun}^{Week} D_{Sun}^{Week}(x) + \beta_{Bobble} Bobble + \varepsilon
+$$
+lm() already found for us the coefficients:
+$$
+\widehat{attendance} (x) = 33909.16  -2385.62\; D_{May}^{Month}(x) + 7163.23 D_{Jun}^{Month}(x) + \ldots -662.67 D_{Oct}^{Month}(x)\\
++ 7911.49 D_{Tues}^{Week}(x) + \ldots + 6724.00^{Month} D_{Sun}^{Week}(x) + 10714.90  Bobble 
+$$
+
+Dummy regression variables for day of week variable:
+
+```{r}
+contrasts(events$day_of_week)
+```
+
+Dummy regression variables for month variable:
+
+```{r}
+contrasts(events$month)
+```
+
+* How do I calculate the attendance forecast for a game to be played on a Monday in APR and no bobblehead was given away (remember Monday and Apr are reference levels for dat of week and month variables)?
+
+  $$
+  \text{attendance}(\text{day_of_week} = \text{Monday},\text{month} = \text{APR}, \text{bobblehead} = 0) = \beta_0 = 33909.16
+  $$
+  So $\beta_0$ is the expected attendance for a Monday game in APR when no boblehead is given away.
+
+* How do I calculate the attendance forecast for a game to be played on a Wednesday in JUN and bobbleheads were given away (remember Monday and Apr are reference levels for dat of week and month variables)?
+
+  $$
+  \begin{aligned}
+  \text{attendance}(\text{day_of_week} = \text{Wednesday},\text{month} = \text{JUN}, \text{bobblehead} = 1) & = \beta_0 + \beta_{Jun}^{Month} + \beta_{Wed}^{Week} + \beta_{Bobble} \\
+  &= 33909.16 + 7163.23 + 2460.02  + 10714.90 \\
+  &= `r 33909.16 + 7163.23 + 2460.02  + 10714.90`.
+  \end{aligned}
+  $$
+    The same predictions can be calculated using R. The expected attendance for a game played on Monday in April and no bobblehead is given:
+    ```{r}
+predict(res, newdata = tibble(month = "APR", day_of_week="Monday", bobblehead = 0)) # 
+```
+
+   The expected attendance for a game played on Wednsday in June and bobbleheads are given:
+    ```{r}
+predict(res, newdata = data.frame(month = "JUN", day_of_week="Wednesday", bobblehead = 1), interval = "prediction", level = 0.80)
+```
+  Here we also calculated 95% prediction interval for the attendance.
+
+@. Is there any evidence for a relationship between attendance and other variables? Why or why not?
+
+    Here we want to test $H_0: \beta_{May}^{Month}=\ldots=\beta_{Oct}^{Month}=\beta_{Tues}^{Week}=\ldots=\beta_{Sun}^{Week}=\beta_{Bobble}=0$
+    ```{r}
+small <- update(res, . ~ 1)
+anova(small, res)
+```
+    In anova table, if small model is correct, then we expect p-value to be large (>=.05). In this case, p-value is practically zero. Therefore, we reject the small model. At least oone of the dummies will have a value different zero.
+
+@. Does the bobblehead promotion have a statistically significant effect on the attendance?
+
+    Here we test $H_0: \beta_{Bobble} = 0$; namely, bobblehead does not add any more attendance to game.
+
+    ```{r}
+res %>% summary()
+```
+    If null hypothesis is correct (namely, small model without bobblehead term is correct), then we expect p-value (Pr(>|t|)) to be large (>0.05). Here p-value (0.0000359) is small. Therefore, we reject the null hypothesis and small model. Therefore, data suggest that bobblehead promotion will boost the ticket sales.
+
+    Even though we concluded that bobblehead is instrumental, hypothesis testing exercise does not tell how strongly it will boost the sale. To measure the size of the effect, let us construct confidence interval for it. 
+    
+    ```{r}
+res %>% confint(parm = "bobblehead", level = 0.80)
+```
+
+@. Do month and day of week variables help to explain the number of attendants?
+
+    To check whether month has an effect on attendance, test $H_0: \beta_{May}^{Month}=\ldots=\beta_{Oct}^{Month}=0$ 
+    ```{r}
+small <- res %>% update(. ~ . - month)
+anova(small, res)
+```
+    If the small model is correct (namely, month is unimportant), then we expect p-value (Pr(>F)) is large (>0.05). Because p-value value is small, I reject the small model. Therefore, month turns out to be an important variable.
+
+    Now test if day_of_week is unimportant ($H_0: \beta_{Tues}^{Week}=\ldots=\beta_{Sun}^{Week}=0$)
+    ```{r}
+small <- res %>% update(. ~ . - day_of_week)
+anova(small, res)
+```
+    Since p-value is small (0.02704 < 0.05), we reject null hypothesis. Therefore, data suggest that day_of_week should be kept in the model.
+    
+@. How many fans are expected to be drawn alone by a bobblehead promotion to a home game? Give a 90\% confidence interval.
+
+    In other words, what is $\hat\beta_{bobble}$ and 90% confidence interval for $\beta_{bobble}$
+    ```{r}
+coef(res)["bobblehead"] # exxpected attendance alone due bobblehead
+confint(res, "bobblehead", level=.90)
+```
+    
+@. How good does the model fit to the data? Why? Comment on residual standard error and R$^2$. Plot observed attendance against predicted attendance. 
+
+    * R2 = coefficient of determination = percentage of variation in attendance explained by the model. Always it is between 0, 1. A model that has large R2 is a good model.
+    * RSE = estimate of error standard deviation. It measures the size of forecast error. The smaller the better. Typically we compare RSE against the median of response (attendance).
+   
+     Error percentage
+    ```{r}
+100*sigma(res)/median(events$attend) # percent error
+```
+   
+    R2
+    ```{r}
+summary(res)$r.square
+```
+     Our model can explain `r round(100*summary(res)$r.square)`% of variation in attendance.   
+
+    ```{r, fig.asp=1}
+plot(fitted(res), events$attend)
+abline(0, 1)
+```
+
+  
+@. Predict the number of attendees to a typical home game on a Wednesday in June if a bobblehead promotion is extended. Give a 90% prediction interval.
+
+    ```{r}
+# predict(res, newdata = data.frame(day_of_week="Wednesday", month = "JUN", bobblehead=1), se.fit = TRUE)
+predict(res, newdata = data.frame(day_of_week="Wednesday", month = "JUN", bobblehead=1), interval = "predict", level= 0.90)
+```
+
+# Model selection
+
+We can compare nested models using anova (F-test). Even if models are nested, anova test does not give the model with the superior generalization power (power to learn the most from the training set to apply on the unseen data in the future). We need to estimate the real predictive power of a model. Better candidates
+
+* information criteria (AIC, BIC, AICc, MLD)
+* cross-validation
+
+What is AIC?
+$$
+AIC = - 2 \text{ log likelihood} + 2 \text{ number of parameters} \\
+BIC = - 2 \text{ log likelihood} +\log (\text{sample size}) \times  \text{ number of parameters} \\
+$$
+```{r}
+complex <- res %>% 
+  update(. ~ .^2)
+
+AIC(res, complex)
+BIC(res, complex)
+```
+
+
+```{r}
+res %>% coef() %>% length()
+complex %>% coef %>% na.omit %>% length()
+```
+
+
+```{r}
+res %>% 
+  step(direction = "forward", scope = list(lower = res,  upper = update(res, . ~ .^2)))
+```
+
+
+```{r}
+complex %>% step(direction = "backward")
+```
+
+```{r}
+complex %>% step(direction = "both")
+```
+
+```{r}
+res_bic <- complex %>% step(direction = "both", k = log(nrow(events)))  #  use BIC rather han AIC
+```
+
+Because we have small sample, BIC may return underfitted models, so use AIC. Or even better use cross-validation.
+
+```{r}
+nfold <-  4
+set.seed(1)
+id_fold <- rep(1:4, len = nrow(events)) %>% sample()
+events
+
+rmse_res <- rep(NA, nfold)
+rmse_bic <- rep(NA, nfold)
+for (i in seq(nfold)){
+  test <- events[id_fold == i,]
+  train <- events[id_fold != i,]
+  
+  lmod <- update(res, data = train)
+  pred_test <- predict(lmod, newdata= test)
+  rmse_res[i] <- sqrt(mean((test$attend - pred_test)^2))
+  
+  lmod_bic <- update(res_bic, data = train)
+  pred_test_bic <- predict(lmod_bic, newdata= test)
+  rmse_bic[i] <- sqrt(mean((test$attend - pred_test_bic)^2))
+}
+
+rmse_res %>% mean()
+rmse_bic %>% mean()
+```
+
+
+## Project (will be graded)
+   * can be done in groups of three at most
+   * due 19:00 March 20, Saturday
+   * submit to Moodle course page zipped Rmd, html files
+
+Include **all variables** and conduct a full regression analysis of the problem. Submit your `R markdown` and `html` files to course homepage on moodle.
+  
+## Bibliography
+
+
