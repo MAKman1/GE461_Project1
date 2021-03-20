@@ -59,6 +59,23 @@ events %>%
 ```
 ## Relation of Variables to Attendance
 ### Month
+```{r collapse=TRUE}
+
+g1 <- ggplot(events, aes(x = month, y = attend, fill = month)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Month")
+
+g1b <- ggplot(events, aes(x = month, y = attend, fill = month, color = bobblehead)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Month")
+
+grid.arrange(g1, g1b, ncol = 2)
+```
+
 ### Day of the Week
 ```{r collapse=TRUE}
 
@@ -73,7 +90,22 @@ grid.arrange(g2, ncol = 1)
 ```
 
 ### Opponent
+```{r collapse=TRUE}
 
+g30 <- ggplot(events, aes(x = opponent, y = attend, fill = opponent)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Opponent")
+
+g30b <- ggplot(events, aes(x = opponent, y = attend, fill = opponent, color = bobblehead)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Opponent")
+
+grid.arrange(g30, g30b, ncol = 2)
+```
 
 ### Temperature
 ```{r collapse=TRUE}
@@ -206,4 +238,18 @@ grid.arrange(g8, g8b, ncol = 2)
 
 
 ## Linear Regression Model
-
+```{r collapse=TRUE}
+res <- lm(attend ~ month + day_of_week + bobblehead, events)
+contrasts(events$month)
+contrasts(events$day)
+contrasts(events$attend)
+contrasts(events$day_of_week)
+contrasts(events$opponent)
+contrasts(events$temp)
+contrasts(events$skies)
+contrasts(events$day_night)
+contrasts(events$cap)
+contrasts(events$shirt)
+contrasts(events$fireworks)
+contrasts(events$bobblehead)
+```
