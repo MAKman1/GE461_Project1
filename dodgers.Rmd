@@ -94,24 +94,23 @@ All materials for the next three weeks will be available on [Google drive](https
     * `R` (likewise, `Python`) allows one to seeminglessly read from and write to databases. For fast analysis, keep data in a database, index tables for fast retrieval, use `R` or `Python` to fit models to data.
 
 ```{r}
-# Ctrl-shift-i
-#library(RPostgreSQL)
-library(RSQLite)  ## if package is not on the computer, then install it only once using Tools > Install packages...
-con <- dbConnect(SQLite(), "data/dodgers.sqlite") # read Modern Data Science with R for different ways to connect a database.
-
-## dbListTables(con)
+library(RSQLite)
+con <- dbConnect(SQLite(), "data/dodgers.sqlite") 
 
 events <- tbl(con, "events") %>% 
   collect() %>% 
   mutate(day_of_week = factor(day_of_week, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")),
          month = factor(month, levels = c("APR","MAY","JUN","JUL","AUG","SEP","OCT")),
-         temp = round((temp - 32)*5/9),
-         bobblehead = ifelse(bobblehead=="YES", 1, 0)) # temp is converted from F to C.)
+         temp = round((temp - 32)*5/9), # temp is converted from F to C.)
+         cap = ifelse(cap=="YES", 1, 0),
+         shirt = ifelse(shirt=="YES", 1, 0),
+         fireworks = ifelse(fireworks=="YES", 1, 0),
+         bobblehead = ifelse(bobblehead=="YES", 1, 0))
   
 # events %>% distinct(month)
-# events$day_of_week %>% class()
+# events$day_of_week
 # events$day_of_week %>% levels()
-# events
+# events$bobblehead
 ```
 
 ```{r, eval=FALSE}
