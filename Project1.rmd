@@ -78,25 +78,132 @@ grid.arrange(g2, ncol = 1)
 ### Temperature
 ```{r collapse=TRUE}
 
-g2 <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week)) +
-   geom_boxplot() +
+g3 <- ggplot(events, aes(x = temp, y = attend, fill = temp)) +
+   geom_point() +
+   geom_smooth(se=FALSE, method="loess")
    theme(axis.text.x=element_blank(),
    axis.ticks.x=element_blank()) +
    ggtitle("Attendance - Temperature")
 
-g2b <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week, color = bobblehead)) +
-   geom_boxplot() +
+g3b <- ggplot(events, aes(x = temp, y = attend, fill = temp, color = bobblehead)) +
+   geom_point() +
+   geom_smooth(se=FALSE, method="loess")
    theme(axis.text.x=element_blank(),
    axis.ticks.x=element_blank()) +
    ggtitle("Attendance ( Bobblehead) - Temperature")
 
-grid.arrange(g2, g2b, ncol = 2)
+grid.arrange(g3, g3b, ncol = 2)
 ```
+
 ### Skies
+```{r collapse=TRUE}
+
+g4 <- ggplot(events, aes(x = skies, y = attend, fill = skies)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Skies")
+
+g4b <- ggplot(events, aes(x = skies, y = attend, fill = skies, color = bobblehead)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Skies")
+
+grid.arrange(g4, g4b, ncol = 2)
+```
+
 ### Day or Night
+```{r collapse=TRUE}
+
+g5 <- ggplot(events, aes(x = day_night, y = attend, fill = day_night)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Day or Night")
+
+g5b <- ggplot(events, aes(x = day_night, y = attend, fill = day_night, color = bobblehead)) +
+   geom_boxplot() +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Day or Night")
+
+grid.arrange(g5, g5b, ncol = 2)
+```
+
 ### Caps
+```{r collapse=TRUE}
+
+g6 <- ggplot(events, aes(x = cap, y = attend, fill = cap)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Caps")
+
+g6b <- ggplot(events, aes(x = cap, y = attend, fill = cap, color = bobblehead)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Caps")
+
+grid.arrange(g6, g6b, ncol = 2)
+```
+
 ### Shirts
+```{r collapse=TRUE}
+
+g7 <- ggplot(events, aes(x = shirt, y = attend, fill = shirt)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Shirts")
+
+g7b <- ggplot(events, aes(x = shirt, y = attend, fill = shirt, color = bobblehead)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Shirts")
+
+grid.arrange(g7, g7b, ncol = 2)
+```
+
 ### Fireworks
+```{r collapse=TRUE}
+
+g8 <- ggplot(events, aes(x = fireworks, y = attend, fill = fireworks)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Fireworks")
+
+g8b <- ggplot(events, aes(x = fireworks, y = attend, fill = fireworks, color = bobblehead)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Fireworks")
+
+grid.arrange(g8, g8b, ncol = 2)
+```
+
+
 ### Bobblehead
+```{r collapse=TRUE}
+
+g8 <- ggplot(events, aes(x = bobblehead, y = attend, fill = bobblehead)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance - Bobblehead")
+
+g8b <- ggplot(events, aes(x = bobblehead, y = attend, fill = bobblehead, color = bobblehead)) +
+   geom_point(position="jitter", alpha=0.6) +
+   theme(axis.text.x=element_blank(),
+   axis.ticks.x=element_blank()) +
+   ggtitle("Attendance ( Bobblehead) - Bobblehead")
+
+grid.arrange(g8, g8b, ncol = 2)
+```
+
+
 ## Linear Regression Model
 
