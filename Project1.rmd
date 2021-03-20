@@ -1,5 +1,6 @@
 ---
-title: <center><h2><b> GE461 Project1 <br/></b></h2></center>
+title: <center><h2> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GE461 Project 1</h2></center>
+papersize: a4paper
 author: <center> <b><br/>Gledis Zeneli 21701065</b> <br/> <br/> <b>Verdiyev Zulfugar 21701208</b> <br/> <br/>  <b>Muhammad Arham Khan 21701848</b></center>
 always_allow_html: true
 linkcolor: red
@@ -31,6 +32,7 @@ options(scipen = 999)
 ```
 
 ## Data
+The data has been processed so that all the text fields have either been converted to numerical or to levels. The temperature data has been converted from <b>&#176;F</b> to <b>&#176;C</b>.
 
 ```{r collapse=TRUE}
 library(RSQLite)
@@ -67,10 +69,12 @@ g2 <- ggplot(events, aes(x = day_of_week, y = attend, fill = day_of_week)) +
    axis.ticks.x=element_blank()) +
    ggtitle("Attendance - Day of week")
 
-#grid.arrange(g2, g2b, ncol = 2)
+grid.arrange(g2, ncol = 1)
 ```
 
 ### Opponent
+
+
 ### Temperature
 ```{r collapse=TRUE}
 
@@ -94,4 +98,5 @@ grid.arrange(g2, g2b, ncol = 2)
 ### Shirts
 ### Fireworks
 ### Bobblehead
-### ??Linear Regression??
+## Linear Regression Model
+

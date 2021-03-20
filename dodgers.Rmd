@@ -1,7 +1,7 @@
 ---
 title: <center> <h2> Spring 2021 </h2>  GE 461 Introduction to Data Science </center>
 # title: |
-pagetitle: GE 461 Introduction to Data Science
+pagetitle: Project 1
 papersize: a4paper
 author: <center> Statistical Models by Savaş Dayanık </center>
 # author: Statistical Models by Savaş Dayanık
